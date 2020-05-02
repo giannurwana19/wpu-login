@@ -9,7 +9,7 @@ class Auth extends CI_Controller {
     $this->load->library('form_validation');
   }
 
-  public  function index(){
+  public function index(){
 
     $this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email');
     $this->form_validation->set_rules('password', 'Password', 'trim|required');
@@ -43,7 +43,12 @@ class Auth extends CI_Controller {
             'role_id' => $user['role_id']
           ];
           $this->session->set_userdata($data); // simpan ke dalam session
-          redirect('user');
+          // cek role_id (user atau admin)
+          if($user['role_id'] == 1){
+            redirect('admin');
+          }else{
+            redirect('user');
+          }
 
         }else{
           $this->session->set_flashdata('message', '<div class="alert alert-danger text-center" role="alert">
@@ -90,7 +95,7 @@ class Auth extends CI_Controller {
       $data = [
         'name' => htmlspecialchars($this->input->post('name'), true),
         'email' => htmlspecialchars($this->input->post('email'), true),
-        'image' => 'default.jpg',
+        'image' => 'default.png',
         'password' => password_hash($this->input->post('password1'), PASSWORD_DEFAULT),
         'role_id' => 2,
         'is_active' => 1,
