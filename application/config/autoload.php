@@ -92,7 +92,8 @@ $autoload['drivers'] = array();
 // ! url = supaya kita bisa pake base_url
 // ! file untuk upload gambar
 // ! security = kita butuh enkripsi untuk simpan password
-$autoload['helper'] = array('url', 'file', 'security');
+// ! wpu = helper buatan kita yang kita buat di folder helper, aturan nama harus dengan _helper agar dikenali oleh codeigniter
+$autoload['helper'] = array('url', 'file', 'security', 'wpu');
 
 /*
 | -------------------------------------------------------------------
