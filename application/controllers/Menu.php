@@ -3,6 +3,12 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class Menu extends CI_Controller{
 
+  public function __construct()
+  {
+    parent::__construct();
+    $this->load->model('Menu_model', 'menu');
+  }
+
   public function index(){
 
     $data['title'] = "Menu Management";
@@ -31,7 +37,7 @@ class Menu extends CI_Controller{
   public function submenu(){
     $data['title'] = "Submenu Management";
     $data['user'] = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
-    $this->load->model('Menu_model', 'menu');
+
 
     $data['submenu'] = $this->menu->getSubMenu();
     $data['menu'] = $this->db->get('user_menu')->result_array();
@@ -61,10 +67,22 @@ class Menu extends CI_Controller{
       redirect('menu/submenu');
     }
 
-
-
-
   }
+
+  public function deleteMenu($id){
+    $this->menu->delete_menu($id);
+    $this->session->set_flashdata('message', '<div class="alert alert-success text-center" role="alert">Menu deleted!</div>');
+    redirect('menu');
+  }
+  
+  public function deleteSubmenu($id){
+    $this->menu->delete_sub_menu($id);
+    $this->session->set_flashdata('message', '<div class="alert alert-success text-center" role="alert">Menu deleted!</div>');
+    redirect('menu/submenu');
+  }
+
+
+
 
 
 

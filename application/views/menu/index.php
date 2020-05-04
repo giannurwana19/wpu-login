@@ -12,7 +12,7 @@
 
   <?= $this->session->flashdata('message'); ?>
 
-      <a href="" class="btn btn-primary btn-sm mb-3" data-toggle="modal" data-target="#newMenuModal">Add new menu</a>
+      <a href="" class="btn btn-primary btn-sm mb-3" data-toggle="modal" data-target="#newMenuModal"><i class="fas fa-plus"></i> Add new menu</a>
 
       <table class="table table-hover">
         <thead>
@@ -30,7 +30,7 @@
               <td><?= $m['menu']; ?></td>
               <td>
                 <a href="" class="badge badge-success">Edit</a>
-                <a href="" class="badge badge-danger">Delete</a>
+                <a href="<?= base_url() ?>menu/deleteMenu/<?= $m['id']?>" onclick="return confirm('Are you sure Delete it?')" class="badge badge-danger">Delete</a>
               </td>
             </tr>
           <?php endforeach; ?>

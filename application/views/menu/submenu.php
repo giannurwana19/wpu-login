@@ -8,7 +8,7 @@
   <div class="row">
     <div class="col-lg">
 
-      <?php if(validation_errors()): ?>
+      <?php if (validation_errors()) : ?>
         <div class="alert alert-danger text-center" role="alert">
           <?= validation_errors(); ?>
         </div>
@@ -16,7 +16,7 @@
 
       <?= $this->session->flashdata('message'); ?>
 
-      <a href="" class="btn btn-primary btn-sm mb-3" data-toggle="modal" data-target="#newSubMenuModal">Add new Submenu</a>
+      <a href="" class="btn btn-primary btn-sm mb-3" data-toggle="modal" data-target="#newSubMenuModal"><i class="fas fa-plus"></i> Add new Submenu</a>
 
       <table class="table table-hover">
         <thead>
@@ -42,7 +42,7 @@
               <td><?= $sm['is_active']; ?></td>
               <td>
                 <a href="" class="badge badge-success">Edit</a>
-                <a href="" class="badge badge-danger">Delete</a>
+                <a href="<?= base_url() ?>menu/deleteSubmenu/<?= $sm['id'] ?>" class="badge badge-danger" onclick="return confirm('Are You sure Delete it?')">Delete</a>
               </td>
             </tr>
           <?php endforeach; ?>
@@ -66,7 +66,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Add new menu</h5>
+        <h5 class="modal-title" id="exampleModalLabel">Add new Submenu</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
