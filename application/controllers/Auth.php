@@ -78,7 +78,8 @@ class Auth extends CI_Controller {
 
   }
   
-  public function registration(){
+  public function registration()
+  {
 
     if ($this->session->userdata('email')) {
       redirect('user');
@@ -101,24 +102,135 @@ class Auth extends CI_Controller {
       $this->load->view('templates/auth_footer');
     }else{
       // echo "data berhasil ditambahkan";
+      $email = $this->input->post('email');
       $data = [
         'name' => htmlspecialchars($this->input->post('name'), true),
-        'email' => htmlspecialchars($this->input->post('email'), true),
+        'email' => htmlspecialchars($email, true),
         'image' => 'default.png',
         'password' => password_hash($this->input->post('password1'), PASSWORD_DEFAULT),
         'role_id' => 2,
-        'is_active' => 1,
+        'is_active' => 0, // buat jadi 0, agar tidak active dan tidak bisa login
         'date_created' => time()
       ];
 
+      // * siapkan token berupa bilangan random
+      // random_bytes = membangkitkan bilangan random
+      // base64_encode() = untuk menterjemahkan kode agar bisa dikenal mysql
+      $token = base64_encode(random_bytes(32)); // nanti bilangan ini yang akan dikirim ke email
+      $user_token = [
+        'email' => $email,
+        'token' => $token,
+        'date_created' => time()
+      ];
+
+      // var_dump($token);die;
+
       // insert ke db
       $this->db->insert('user', $data);
+      $this->db->insert('user_token', $user_token); // insert ke table token
+
+      // kirim email
+      $this->_sendEmail($token, 'verify'); // kirim parameter token ke email untuk verifikasi password 
+
       $this->session->set_flashdata('message', '<div class="alert alert-success text-center" role="alert">
-      Congratulations, your account has been created, <br> please login!
+      Congratulations, your account has been created, <br> please activate your account!
       </div>');
       redirect('auth');
     }
   }
+
+  private function _sendEmail($token, $type){
+    $config = [
+      'protocol' => 'smtp', // protokolnya apa
+      'smtp_host' => 'ssl://smtp.googlemail.com', // kita tulis google disini
+      'smtp_user' => 'giansmpn2sepatan@gmail.com', // email pengirim
+      'smtp_pass' => 'ginjalhewan', //  passwordnya
+      'smtp_port' => 465, // port google
+      'mailtype' => 'html', // tipe emailnya, karena kita mau nulis ada link nya 
+      'charset' => 'utf-8', // karakter setnya
+      'newline' => "\r\n" // kalo ngga pake ini ngga mau ngirim nanti
+    ];
+
+    // panggil library email codeigniter
+    $this->email->initialize($config);
+
+    $this->email->from('giansmpn2sepatan@gmail.com', 'Gian Nurwana'); // (email pengirim, nama lengkap (alias))
+    $this->email->to($this->input->post('email')); // email penerima
+
+    if($type == 'verify'){
+      $this->email->subject('Account Verification'); // subject nya
+      $this->email->message('Click this link to verify your account : <a href="' . base_url() . 'auth/verify?email=' . $this->input->post('email') . '&token=' . $token . '">Activate</a>'); // isi email
+    }
+
+
+    // $this->email->send(); // kirim emailnya
+    // ! percobaan kirim email
+    if ($this->email->send()) {
+      return true;
+    } else {
+      echo $this->email->print_debugger(); // tampilkan errornya
+      die;
+    }
+
+
+  }
+
+  public function verify(){ // fungsi ini akan melakukan verifikasi terhadap link yang dikirim lewat email
+    // kalo email & dan token nya ada di database, kita akan ubah di table user is_active nya jadi 1, agar bisa login
+    // * ambil email & token di url
+    $email = $this->input->get('email');
+    $token = $this->input->get('token');
+
+    // ? ambil user berdasarkan user db
+    $user = $this->db->get_where('user', ['email' => $email])->row_array();
+
+    if($user){
+      // query token nya dan cocokkan dengan di url
+      $user_token = $this->db->get_where('user_token', ['token' => $token])->row_array();
+
+      if($user_token){
+        // buat batas waktu
+        if(time() - $user_token['date_created'] < (60*60*24)){ // lebih kecil dari 1 hari){
+          // user boleh daftar
+          $this->db->set('is_active', 1);
+          $this->db->where('email', $email);
+          $this->db->update('user');
+
+          $this->db->delete('user_token', ['email' => $email]);
+
+          $this->session->set_flashdata('message', '<div class="alert alert-success text-center" role="alert">
+          ' . $email . ' has been activated, <br>please login!
+          </div>');
+          redirect('auth');
+        }else{
+          // kalo lewat batas waktu hapus dari database
+          $this->db->delete('user', ['email' => $email]);
+          $this->db->delete('user_token', ['email' => $email]);
+
+          $this->session->set_flashdata('message', '<div class="alert alert-danger text-center" role="alert">
+          Token invalid!
+          </div>');
+          redirect('auth');
+        }
+
+
+      }else{
+        $this->session->set_flashdata('message', '<div class="alert alert-danger text-center" role="alert">
+        Token invalid!
+        </div>');
+          redirect('auth');
+      }
+
+    }else{
+      $this->session->set_flashdata('message', '<div class="alert alert-danger text-center" role="alert">
+      Account activation failed! Wrong email
+      </div>');
+        redirect('auth');
+    }
+
+  }
+
+
 
 
   public function logout(){
